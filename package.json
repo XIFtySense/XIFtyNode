@@ -1,0 +1,16 @@
+{
+  "name": "@xiftysense/xifty-node",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Node binding for XIFty",
+  "main": "index.js",
+  "scripts": {
+    "install": "node scripts/build-core.js && node-gyp rebuild",
+    "test": "node --test test/*.test.js",
+    "example": "node examples/basic_usage.js"
+  },
+  "dependencies": {
+    "node-addon-api": "^8.5.0"
+  }
+}
+
