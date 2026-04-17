@@ -71,7 +71,7 @@ jobs:
         run: npm run build:prebuilds
 
       - name: Upload prebuilds
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: prebuild-${{ matrix.name }}
           path: XIFtyNode/prebuilds/**
@@ -105,7 +105,7 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Download prebuilds
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           pattern: prebuild-*
           merge-multiple: true
