@@ -1,11 +1,11 @@
 "use strict";
 
 const { spawnSync } = require("node:child_process");
-const { describeCoreSource, hasCoreCheckout } = require("./core-config");
+const { describeCoreSource, shouldUseSourceBuild } = require("./core-config");
 
-if (!hasCoreCheckout()) {
+if (!shouldUseSourceBuild()) {
   process.stdout.write(
-    `No explicit XIFty core source configured; skipping source build and expecting bundled prebuilds. Maintainer builds can use XIFTY_CORE_DIR or the cached core source flow (${describeCoreSource()}).\n`,
+    `No explicit source-build request detected; skipping source build and expecting bundled prebuilds. Maintainer builds can use XIFTY_CORE_DIR or XIFTY_FORCE_BUILD=1 with the cached core source flow (${describeCoreSource()}).\n`,
   );
   process.exit(0);
 }

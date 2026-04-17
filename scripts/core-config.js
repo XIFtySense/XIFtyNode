@@ -18,6 +18,7 @@ const explicitCargoTargetDir = process.env.XIFTY_CARGO_TARGET_DIR
   ? path.resolve(process.env.XIFTY_CARGO_TARGET_DIR)
   : null;
 const cargoProfile = resolveProfile();
+const forceBuild = process.env.XIFTY_FORCE_BUILD === "1";
 
 function resolveProfile(value) {
   const profile = String(value || process.env.XIFTY_CARGO_PROFILE || "release").toLowerCase();
@@ -76,6 +77,10 @@ function hasCoreCheckout(dir = coreDir()) {
   return fs.existsSync(manifestPath(dir));
 }
 
+function shouldUseSourceBuild() {
+  return Boolean(explicitCoreDir) || forceBuild;
+}
+
 function runOrThrow(command, args, options = {}) {
   const result = spawnSync(command, args, {
     stdio: "inherit",
@@ -131,10 +136,12 @@ module.exports = {
   explicitCargoTargetDir,
   describeCoreSource,
   ensureCoreCheckout,
+  forceBuild,
   hasCoreCheckout,
   includeDir,
   manifestPath,
   profileDir,
   resolveProfile,
+  shouldUseSourceBuild,
   staticLibraryPath,
 };

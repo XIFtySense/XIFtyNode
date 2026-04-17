@@ -97,3 +97,28 @@ test("invalid view throws a targeted error", () => {
     /unsupported view: bad-view/,
   );
 });
+
+test("consumer installs do not switch to source-build mode from cached core alone", () => {
+  const script = `
+    const path = require("node:path");
+    const os = require("node:os");
+    const fs = require("node:fs");
+    const cacheDir = path.join(os.tmpdir(), "xifty-node-test-cache-" + process.pid);
+    const coreDir = path.join(cacheDir, "main");
+    fs.mkdirSync(coreDir, { recursive: true });
+    fs.writeFileSync(path.join(coreDir, "Cargo.toml"), "[package]\\nname='fake'\\nversion='0.0.0'\\n");
+    process.env.XIFTY_CORE_CACHE_DIR = cacheDir;
+    delete process.env.XIFTY_CORE_DIR;
+    delete process.env.XIFTY_FORCE_BUILD;
+    const { shouldUseSourceBuild } = require("./scripts/core-config");
+    if (shouldUseSourceBuild()) process.exit(1);
+  `;
+
+  const { spawnSync } = require("node:child_process");
+  const result = spawnSync(process.execPath, ["-e", script], {
+    cwd: path.resolve(__dirname, ".."),
+    stdio: "pipe",
+  });
+
+  assert.equal(result.status, 0, result.stderr.toString("utf8"));
+});
