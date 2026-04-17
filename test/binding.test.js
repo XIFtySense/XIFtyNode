@@ -8,28 +8,91 @@ const xifty = require("..");
 
 const fixture = path.resolve(__dirname, "../fixtures/happy.jpg");
 
+function fieldsByName(output) {
+  return Object.fromEntries(
+    output.normalized.fields.map((field) => [field.field, field]),
+  );
+}
+
 test("package version returns the npm package version", () => {
   assert.equal(xifty.packageVersion(), "0.1.1");
 });
 
-test("version returns a string", () => {
-  assert.equal(typeof xifty.version(), "string");
-  assert.ok(xifty.version().length > 0);
+test("core version returns a non-empty semantic-looking string", () => {
+  assert.match(xifty.version(), /^\d+\.\d+\.\d+/);
 });
 
-test("probe returns detected format", () => {
+test("probe returns input summary for the fixture", () => {
   const output = xifty.probe(fixture);
+
+  assert.equal(output.schema_version, "0.1.0");
   assert.equal(output.input.detected_format, "jpeg");
+  assert.equal(output.input.container, "jpeg");
+  assert.equal(output.input.path, fixture);
 });
 
-test("extract normalized returns expected field", () => {
+test("extract defaults to the full envelope", () => {
+  const output = xifty.extract(fixture);
+
+  assert.ok(output.raw);
+  assert.ok(output.interpreted);
+  assert.ok(output.normalized);
+  assert.ok(output.report);
+});
+
+test("raw view preserves low-level metadata and container evidence", () => {
+  const output = xifty.extract(fixture, { view: "raw" });
+
+  assert.equal(output.input.detected_format, "jpeg");
+  assert.equal(output.raw.containers[0].label, "jpeg");
+  assert.equal(output.raw.metadata[0].namespace, "exif");
+  assert.equal(output.raw.metadata[0].tag_name, "ImageWidth");
+  assert.equal(output.raw.metadata[0].value.value, 800);
+  assert.deepEqual(output.report, { issues: [], conflicts: [] });
+});
+
+test("interpreted view exposes decoded EXIF tag names", () => {
+  const output = xifty.extract(fixture, { view: "interpreted" });
+  const tagNames = output.interpreted.metadata.map((entry) => entry.tag_name);
+
+  assert.ok(tagNames.includes("Make"));
+  assert.ok(tagNames.includes("Model"));
+  assert.ok(tagNames.includes("DateTimeOriginal"));
+});
+
+test("normalized view yields stable application-facing fields", () => {
   const output = xifty.extract(fixture, { view: "normalized" });
-  const fields = Object.fromEntries(
-    output.normalized.fields.map((field) => [field.field, field]),
-  );
+  const fields = fieldsByName(output);
+
+  assert.equal(fields["captured_at"].value.value, "2024-04-16T12:34:56");
   assert.equal(fields["device.make"].value.value, "XIFtyCam");
+  assert.equal(fields["device.model"].value.value, "IterationOne");
+  assert.equal(fields["software"].value.value, "XIFtyTestGen");
+  assert.equal(fields["orientation"].value.value, 1);
+  assert.equal(fields["dimensions.width"].value.value, 800);
+  assert.equal(fields["dimensions.height"].value.value, 600);
+  assert.equal(fields["device.make"].sources[0].namespace, "exif");
 });
 
-test("invalid view throws", () => {
-  assert.throws(() => xifty.extract(fixture, { view: "bad-view" }));
+test("report view remains present and explicit even when empty", () => {
+  const output = xifty.extract(fixture, { view: "report" });
+
+  assert.deepEqual(output.report.issues, []);
+  assert.deepEqual(output.report.conflicts, []);
+  assert.equal(output.raw, undefined);
+  assert.equal(output.normalized, undefined);
+});
+
+test("numeric view selection matches named view selection", () => {
+  const named = xifty.extract(fixture, { view: "normalized" });
+  const numeric = xifty.extract(fixture, { view: 3 });
+
+  assert.deepEqual(numeric.normalized, named.normalized);
+});
+
+test("invalid view throws a targeted error", () => {
+  assert.throws(
+    () => xifty.extract(fixture, { view: "bad-view" }),
+    /unsupported view: bad-view/,
+  );
 });

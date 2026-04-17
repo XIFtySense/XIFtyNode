@@ -51,7 +51,8 @@
     "coverage": "c8 node --test test/*.test.js",
     "preexample": "npm run build:ts",
     "prepack": "npm run build:ts",
-    "example": "node examples/basic_usage.js"
+    "example": "node examples/basic_usage.js",
+    "example:gallery": "node examples/gallery_ingest.js"
   },
   "dependencies": {
     "node-addon-api": "^8.5.0",

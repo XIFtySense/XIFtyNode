@@ -34,6 +34,18 @@ console.log(result.input.detected_format);
 console.log(result.normalized.fields);
 ```
 
+Typical normalized use:
+
+```js
+const fields = Object.fromEntries(
+  result.normalized.fields.map((field) => [field.field, field.value.value]),
+);
+
+console.log(fields["device.make"]);
+console.log(fields["device.model"]);
+console.log(fields["captured_at"]);
+```
+
 ## API
 
 ### `xifty.version(): string`
@@ -74,6 +86,9 @@ const normalized = xifty.extract("image.jpg", { view: "normalized" });
 const report = xifty.extract("image.jpg", { view: "report" });
 ```
 
+Numeric view selection is also supported for low-level consumers, but named
+views are the intended public API.
+
 ## Output Shape
 
 Every call returns a JSON-like envelope with the same top-level structure:
@@ -103,6 +118,22 @@ import { extract } from "@xifty/xifty";
 
 const result = extract("image.jpg", { view: "normalized" });
 ```
+
+## Why Use It
+
+Use this package when you want:
+
+- a native Node interface instead of shelling out to CLI tools
+- stable normalized fields for app logic
+- access to raw and interpreted metadata when provenance matters
+- explicit issue/conflict reporting instead of silent lossy parsing
+
+Common application fits:
+
+- photo-library ingestion
+- media indexing pipelines
+- upload-time metadata extraction
+- back-office asset processing
 
 ## Supported Platforms
 
@@ -141,6 +172,7 @@ npm install
 npm test
 npm run coverage
 node examples/basic_usage.js
+node examples/gallery_ingest.js
 ```
 
 ## Maintainer Notes
