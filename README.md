@@ -52,8 +52,11 @@ XIFTY_CORE_DIR=/path/to/XIFty npm run build:prebuilds
 - `CI` validates the package against the public XIFty core repo
 - `publish.yml` builds platform prebuilds and publishes to npm from GitHub
   Actions
-- npm publishing is intended to use trusted publishing from GitHub Actions
-  rather than long-lived npm tokens
+- preferred auth: npm trusted publishing from GitHub Actions
+- fallback auth: `NPM_TOKEN` GitHub Actions secret backed by a granular
+  read/write token with `Bypass two-factor authentication` enabled
+- the actual public publish should happen from the release workflow after it has
+  merged the platform prebuild artifacts, not from a single maintainer machine
 
 ## Maintainer Setup
 
@@ -62,14 +65,12 @@ Before the release workflow can publish automatically:
 1. Configure npm trusted publishing for `XIFtySense/XIFtyNode`
    for npm package `xifty`
 2. Point it at workflow filename `publish.yml`
-3. After trusted publishing works, set package publishing access on npm to
-   `Require two-factor authentication and disallow tokens`
+3. If trusted publishing cannot be configured yet, create a granular npm access
+   token with `Read and write` package permission and `Bypass two-factor
+   authentication` enabled, then store it as repo secret `NPM_TOKEN`
+4. After trusted publishing is working, prefer that path and retire the token
+   fallback
 
-If npm requires the package to exist before trusted publishing can be configured,
-do one initial maintainer publish manually with:
-
-```bash
-npm publish --access public
-```
-
-Then switch subsequent releases to GitHub Actions trusted publishing.
+Do not rely on a one-off local maintainer publish unless you have assembled the
+full multi-platform `prebuilds/` set first. The intended shipping path is the
+GitHub release workflow.

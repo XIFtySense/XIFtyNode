@@ -6,6 +6,9 @@ on:
       - published
   workflow_dispatch:
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: read
 
@@ -113,4 +116,6 @@ jobs:
 
       - name: Publish to npm
         if: github.event_name == 'release'
-        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
