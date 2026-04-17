@@ -104,3 +104,6 @@ jobs:
 
       - name: Show package contents
         run: npm run verify:package
+
+      - name: Smoke packed tarball
+        run: npm run verify:tarball

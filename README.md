@@ -217,6 +217,7 @@ Useful commands:
 ```bash
 npm run core:prepare
 npm run verify:package
+npm run verify:tarball
 npm run build:prebuilds
 npm run verify:linux-x64
 npm run publish:local
@@ -230,3 +231,14 @@ The local publish path now assembles a release bundle with:
 
 That means manual publish from a supported maintainer Mac produces a package
 that is ready for both local macOS use and AWS Lambda / Linux server use.
+
+For release-sensitive local verification against a real fixture, point the
+packed-tarball smoke test at the file and require the fields you care about.
+Example:
+
+```bash
+XIFTY_SMOKE_FIXTURE=/Users/k/Projects/XIFty/fixtures/local/C0242.MP4 \
+XIFTY_SMOKE_FIELDS=video.bitrate,audio.sample_rate \
+XIFTY_SMOKE_NONZERO_FIELDS=video.bitrate,audio.sample_rate \
+npm run verify:tarball
+```
