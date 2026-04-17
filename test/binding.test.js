@@ -3,6 +3,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
+const packageJson = require("../package.json");
 
 const xifty = require("..");
 
@@ -15,7 +16,7 @@ function fieldsByName(output) {
 }
 
 test("package version returns the npm package version", () => {
-  assert.equal(xifty.packageVersion(), "0.1.2");
+  assert.equal(xifty.packageVersion(), packageJson.version);
 });
 
 test("core version returns a non-empty semantic-looking string", () => {

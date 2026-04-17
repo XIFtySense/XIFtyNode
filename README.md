@@ -135,6 +135,25 @@ Common application fits:
 - upload-time metadata extraction
 - back-office asset processing
 
+## AWS Lambda
+
+`@xifty/xifty` is the recommended XIFty runtime for AWS Lambda today.
+
+The published package currently targets:
+
+- `linux-x64`
+- `macos-arm64`
+
+That means the package is ready for `nodejs22.x` Lambda on `x86_64`, local
+Apple Silicon development, and common Linux server/CI environments.
+
+For the first-party Lambda adoption path, start from:
+
+- the core repo Lambda guide:
+  [docs/adoption/AWS_LAMBDA_NODE.md](https://github.com/XIFtySense/XIFty/blob/main/docs/adoption/AWS_LAMBDA_NODE.md)
+- the checked-in SAM example:
+  [examples/aws-sam-node](https://github.com/XIFtySense/XIFty/tree/main/examples/aws-sam-node)
+
 ## Supported Platforms
 
 Current published-package target:
