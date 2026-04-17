@@ -3,13 +3,18 @@
   "version": "0.1.1",
   "description": "Node.js binding for XIFty",
   "license": "MIT",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./index.js"
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
   },
   "files": [
     "binding.gyp",
-    "index.js",
+    "dist/**",
     "prebuilds/**",
     "scripts/**",
     "src/**",
@@ -32,11 +37,19 @@
     "node": ">=20"
   },
   "scripts": {
+    "clean": "rm -rf dist build",
+    "build:ts": "tsc -p tsconfig.json",
     "install": "node scripts/install.js",
-    "build": "node scripts/build-addon.js release",
+    "build": "npm run build:ts && node scripts/build-addon.js release",
     "build:debug": "node scripts/build-addon.js debug",
     "build:prebuilds": "node scripts/prebuild.js",
+    "verify:package": "npm pack --dry-run",
+    "publish:local": "npm run build:prebuilds && npm publish --access public",
+    "pretest": "npm run build:ts",
     "test": "node --test test/*.test.js",
+    "coverage": "c8 node --test test/*.test.js",
+    "preexample": "npm run build:ts",
+    "prepack": "npm run build:ts",
     "example": "node examples/basic_usage.js"
   },
   "dependencies": {
@@ -44,7 +57,10 @@
     "node-gyp-build": "^4.8.4"
   },
   "devDependencies": {
+    "@types/node": "^24.12.2",
+    "c8": "^11.0.0",
     "node-gyp": "^11.5.0",
-    "prebuildify": "^6.0.1"
+    "prebuildify": "^6.0.1",
+    "typescript": "^6.0.3"
   }
 }

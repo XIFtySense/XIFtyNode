@@ -4,9 +4,13 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const path = require("node:path");
 
-const xifty = require("../index.js");
+const xifty = require("..");
 
 const fixture = path.resolve(__dirname, "../fixtures/happy.jpg");
+
+test("package version returns the npm package version", () => {
+  assert.equal(xifty.packageVersion(), "0.1.1");
+});
 
 test("version returns a string", () => {
   assert.equal(typeof xifty.version(), "string");
@@ -29,4 +33,3 @@ test("extract normalized returns expected field", () => {
 test("invalid view throws", () => {
   assert.throws(() => xifty.extract(fixture, { view: "bad-view" }));
 });
-

@@ -9,8 +9,18 @@ const prebuildsDir = path.join(root, "prebuilds");
 
 fs.rmSync(prebuildsDir, { recursive: true, force: true });
 
+const tsc = require.resolve("typescript/bin/tsc");
+let result = spawnSync(process.execPath, [tsc, "-p", "tsconfig.json"], {
+  stdio: "inherit",
+  env: process.env,
+});
+
+if (result.status !== 0) {
+  process.exit(result.status ?? 1);
+}
+
 const buildScript = path.join(__dirname, "build-addon.js");
-let result = spawnSync(process.execPath, [buildScript, "release"], {
+result = spawnSync(process.execPath, [buildScript, "release"], {
   stdio: "inherit",
   env: {
     ...process.env,

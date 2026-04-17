@@ -13,22 +13,26 @@ be the canonical npm package for XIFty.
 
 ## Package Model
 
-- published package: ships bundled native prebuilds for the supported runtime
-  matrix
+- published package: ships whatever prebuilds are assembled into the local
+  package before publish
 - repo development: can build from source against a sibling `../XIFty` checkout
 - fallback override: set `XIFTY_CORE_DIR` if your core checkout lives elsewhere
+- public wrapper: TypeScript source compiled to CommonJS + `.d.ts`
 
 The published package no longer expects consumers to have a local XIFty core
 checkout.
 
-## Supported Platforms
+## Current Package Support
 
-The current supported package matrix is intentionally narrow:
+The current local publish path is intentionally narrow:
 
 - `macos-arm64`
+
+CI validation also confirms the native build on:
+
 - `linux-x64`
 
-Out of scope for this package today:
+Out of scope for the published package today:
 
 - `macos-x64`
 - `windows-*`
@@ -39,6 +43,7 @@ Out of scope for this package today:
 ```bash
 npm install
 npm test
+npm run coverage
 node examples/basic_usage.js
 ```
 
@@ -54,38 +59,49 @@ To regenerate native prebuilds locally:
 XIFTY_CORE_DIR=/path/to/XIFty npm run build:prebuilds
 ```
 
+To validate the exact package contents locally:
+
+```bash
+npm run verify:package
+```
+
+To publish from your local machine with your authenticated npm CLI:
+
+```bash
+XIFTY_CORE_DIR=/path/to/XIFty npm run publish:local
+```
+
+That local publish flow currently ships the prebuilds present in `prebuilds/` at
+publish time. On a newer Mac, that means the local release path is currently
+`macos-arm64` unless you explicitly assemble additional platform prebuilds
+before publishing.
+
 ## Architecture
 
 - native layer: `node-addon-api`
 - core seam: `xifty-ffi`
 - distribution model: bundled `prebuildify` binaries loaded via `node-gyp-build`
 - exchange format: JSON strings returned by the ABI and parsed in JavaScript
+- public wrapper: TypeScript source with generated declaration files
 
 ## Release Model
 
 - `CI` validates the package against the public XIFty core repo
-- `publish.yml` builds platform prebuilds and publishes to npm from GitHub
-  Actions
-- release matrix: `macos-arm64`, `linux-x64`
-- preferred auth: npm trusted publishing from GitHub Actions
-- fallback auth: `NPM_TOKEN` GitHub Actions secret backed by a granular
-  read/write token with `Bypass two-factor authentication` enabled
-- the actual public publish should happen from the release workflow after it has
-  merged the platform prebuild artifacts, not from a single maintainer machine
+- `publish.yml` is now release validation only
+- GitHub Actions no longer publishes to npm
+- the current publish path is local maintainer publish via an authenticated npm
+  CLI session
+- release validation matrix: `macos-arm64`, `linux-x64`
 
 ## Maintainer Setup
 
-Before the release workflow can publish automatically:
+Before publishing locally:
 
-1. Configure npm trusted publishing for `XIFtySense/XIFtyNode`
-   for npm package `xifty`
-2. Point it at workflow filename `publish.yml`
-3. If trusted publishing cannot be configured yet, create a granular npm access
-   token with `Read and write` package permission and `Bypass two-factor
-   authentication` enabled, then store it as repo secret `NPM_TOKEN`
-4. After trusted publishing is working, prefer that path and retire the token
-   fallback
+1. Ensure your npm CLI session is authenticated
+2. Build the local prebuild set you intend to ship
+3. Run `npm run verify:package`
+4. Run `npm run publish:local`
 
-Do not rely on a one-off local maintainer publish unless you have assembled the
-full multi-platform `prebuilds/` set first. The intended shipping path is the
-GitHub release workflow.
+Do not assume CI-validated platforms are automatically included in a local npm
+publish. The local publish path ships only the prebuilds assembled in your
+working tree.
