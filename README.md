@@ -5,7 +5,7 @@ Node.js binding for XIFty.
 Install:
 
 ```bash
-npm install @xiftysense/xifty-node
+npm install xifty
 ```
 
 The package is built on top of the stable `xifty-ffi` C ABI and is intended to
@@ -60,6 +60,7 @@ XIFTY_CORE_DIR=/path/to/XIFty npm run build:prebuilds
 Before the release workflow can publish automatically:
 
 1. Configure npm trusted publishing for `XIFtySense/XIFtyNode`
+   for npm package `xifty`
 2. Point it at workflow filename `publish.yml`
 3. After trusted publishing works, set package publishing access on npm to
    `Require two-factor authentication and disallow tokens`

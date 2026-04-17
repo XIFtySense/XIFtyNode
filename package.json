@@ -1,5 +1,5 @@
 {
-  "name": "@xiftysense/xifty-node",
+  "name": "xifty",
   "version": "0.1.0",
   "description": "Node.js binding for XIFty",
   "license": "MIT",
