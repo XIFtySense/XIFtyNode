@@ -15,7 +15,7 @@ function fieldsByName(output) {
 }
 
 test("package version returns the npm package version", () => {
-  assert.equal(xifty.packageVersion(), "0.1.1");
+  assert.equal(xifty.packageVersion(), "0.1.2");
 });
 
 test("core version returns a non-empty semantic-looking string", () => {
