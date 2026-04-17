@@ -1,5 +1,5 @@
 {
-  "name": "xifty",
+  "name": "@xifty/xifty",
   "version": "0.1.1",
   "description": "Node.js binding for XIFty",
   "license": "MIT",
@@ -45,6 +45,7 @@
     "build:prebuilds": "node scripts/prebuild.js",
     "verify:package": "npm pack --dry-run",
     "publish:local": "npm run build:prebuilds && npm publish --access public",
+    "core:prepare": "node -e \"const { ensureCoreCheckout, describeCoreSource } = require('./scripts/core-config'); console.log('Preparing XIFty core from', describeCoreSource()); console.log('Ready at', ensureCoreCheckout());\"",
     "pretest": "npm run build:ts",
     "test": "node --test test/*.test.js",
     "coverage": "c8 node --test test/*.test.js",

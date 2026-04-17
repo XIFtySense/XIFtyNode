@@ -1,10 +1,16 @@
 "use strict";
 
 const { spawnSync } = require("node:child_process");
-const { cargoArgsForProfile, manifestPath, resolveProfile } = require("./core-config");
+const {
+  cargoArgsForProfile,
+  ensureCoreCheckout,
+  manifestPath,
+  resolveProfile,
+} = require("./core-config");
 
 const profile = resolveProfile(process.argv[2]);
-const args = cargoArgsForProfile(profile);
+const dir = ensureCoreCheckout();
+const args = cargoArgsForProfile(profile, manifestPath(dir));
 
 const result = spawnSync("cargo", args, {
   stdio: "inherit",

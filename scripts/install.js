@@ -1,17 +1,16 @@
 "use strict";
 
-const path = require("node:path");
 const { spawnSync } = require("node:child_process");
-const { coreDir, hasCoreCheckout } = require("./core-config");
+const { describeCoreSource, hasCoreCheckout } = require("./core-config");
 
 if (!hasCoreCheckout()) {
   process.stdout.write(
-    `No local XIFty core checkout detected at ${coreDir}; skipping source build and expecting bundled prebuilds.\n`,
+    `No explicit XIFty core source configured; skipping source build and expecting bundled prebuilds. Maintainer builds can use XIFTY_CORE_DIR or the cached core source flow (${describeCoreSource()}).\n`,
   );
   process.exit(0);
 }
 
-const scriptPath = path.join(__dirname, "build-addon.js");
+const scriptPath = require("node:path").join(__dirname, "build-addon.js");
 const result = spawnSync(process.execPath, [scriptPath, "release"], {
   stdio: "inherit",
   env: {

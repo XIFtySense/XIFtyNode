@@ -90,7 +90,7 @@ function loadNativeBinding(): NativeBinding {
     ) {
       throw new Error(
         [
-          "xifty does not ship a native build for this platform.",
+          "@xifty/xifty does not ship a native build for this platform.",
           "Current local publish flow ships macos-arm64 prebuilds.",
           "linux-x64 remains CI-validated but is not assembled automatically for local publish yet.",
           "Unsupported platforms include macos-x64, windows, and other Linux architectures.",

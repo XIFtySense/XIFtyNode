@@ -4,6 +4,7 @@ const path = require("node:path");
 const {
   cargoProfile,
   coreDir,
+  includeDir,
   manifestPath,
   profileDir,
   staticLibraryPath,
@@ -21,22 +22,22 @@ function toGypPath(value) {
 
 switch (command) {
   case "core-dir":
-    out(toGypPath(coreDir));
+    out(toGypPath(coreDir()));
     break;
   case "manifest":
-    out(toGypPath(manifestPath));
+    out(toGypPath(manifestPath()));
     break;
   case "include":
-    out(toGypPath(`${coreDir}/include`));
+    out(toGypPath(includeDir()));
     break;
   case "profile":
     out(cargoProfile);
     break;
   case "profile-dir":
-    out(toGypPath(profileDir));
+    out(toGypPath(profileDir(cargoProfile)));
     break;
   case "staticlib":
-    out(toGypPath(staticLibraryPath));
+    out(toGypPath(staticLibraryPath(cargoProfile)));
     break;
   default:
     process.stderr.write(`unsupported command: ${command}\n`);
