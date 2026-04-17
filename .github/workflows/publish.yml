@@ -1,0 +1,116 @@
+name: Publish
+
+on:
+  release:
+    types:
+      - published
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: xifty-node-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  prebuild:
+    name: Prebuild (${{ matrix.name }})
+    runs-on: ${{ matrix.runs_on }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x64
+            runs_on: ubuntu-latest
+          - name: macos-x64
+            runs_on: macos-13
+          - name: macos-arm64
+            runs_on: macos-14
+          - name: windows-x64
+            runs_on: windows-latest
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/XIFtyNode
+    steps:
+      - name: Check out binding repo
+        uses: actions/checkout@v5
+        with:
+          path: XIFtyNode
+
+      - name: Check out core repo
+        uses: actions/checkout@v5
+        with:
+          repository: XIFtySense/XIFty
+          path: XIFty
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust artifacts
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            XIFty -> target
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: XIFtyNode/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Build prebuilds
+        env:
+          XIFTY_CORE_DIR: ${{ github.workspace }}/XIFty
+        run: npm run build:prebuilds
+
+      - name: Upload prebuilds
+        uses: actions/upload-artifact@v4
+        with:
+          name: prebuild-${{ matrix.name }}
+          path: XIFtyNode/prebuilds/**
+          if-no-files-found: error
+
+  publish:
+    needs: prebuild
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/XIFtyNode
+    steps:
+      - name: Check out binding repo
+        uses: actions/checkout@v5
+        with:
+          path: XIFtyNode
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+          cache: npm
+          cache-dependency-path: XIFtyNode/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Download prebuilds
+        uses: actions/download-artifact@v4
+        with:
+          pattern: prebuild-*
+          merge-multiple: true
+          path: ${{ github.workspace }}/XIFtyNode/prebuilds
+
+      - name: Show package contents
+        run: npm pack --dry-run
+
+      - name: Publish to npm
+        if: github.event_name == 'release'
+        run: npm publish --access public

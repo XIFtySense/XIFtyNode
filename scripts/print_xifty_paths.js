@@ -1,11 +1,12 @@
 "use strict";
 
-const path = require("node:path");
-
-const root = path.resolve(__dirname, "..");
-const coreDir = process.env.XIFTY_CORE_DIR
-  ? path.resolve(process.env.XIFTY_CORE_DIR)
-  : path.resolve(root, "..", "XIFty");
+const {
+  cargoProfile,
+  coreDir,
+  manifestPath,
+  profileDir,
+  staticLibraryPath,
+} = require("./core-config");
 
 const command = process.argv[2];
 
@@ -18,16 +19,21 @@ switch (command) {
     out(coreDir);
     break;
   case "manifest":
-    out(path.join(coreDir, "Cargo.toml"));
+    out(manifestPath);
     break;
   case "include":
-    out(path.join(coreDir, "include"));
+    out(`${coreDir}/include`);
+    break;
+  case "profile":
+    out(cargoProfile);
+    break;
+  case "profile-dir":
+    out(profileDir);
     break;
   case "staticlib":
-    out(path.join(coreDir, "target", "debug", "libxifty_ffi.a"));
+    out(staticLibraryPath);
     break;
   default:
     process.stderr.write(`unsupported command: ${command}\n`);
     process.exit(1);
 }
-

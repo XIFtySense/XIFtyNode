@@ -1,19 +1,24 @@
 # XIFtyNode
 
-Node binding for XIFty.
+Node.js binding for XIFty.
 
-This package is currently incubating against the XIFty core repository through
-the stable `xifty-ffi` C ABI. The long-term npm package target is:
+Install:
 
-- `@xiftysense/xifty-node`
+```bash
+npm install @xiftysense/xifty-node
+```
 
-## Current Development Model
+The package is built on top of the stable `xifty-ffi` C ABI and is intended to
+be the canonical npm package for XIFty.
 
-For now, local development expects a sibling checkout of the XIFty core repo:
+## Package Model
 
-- `../XIFty`
+- published package: ships bundled native prebuilds for supported platforms
+- repo development: can build from source against a sibling `../XIFty` checkout
+- fallback override: set `XIFTY_CORE_DIR` if your core checkout lives elsewhere
 
-You can override that location with `XIFTY_CORE_DIR`.
+The published package no longer expects consumers to have a local XIFty core
+checkout.
 
 ## Local Development
 
@@ -23,22 +28,47 @@ npm test
 node examples/basic_usage.js
 ```
 
-If your core checkout is somewhere else:
+If your core checkout is somewhere else, point the source build scripts at it:
 
 ```bash
 XIFTY_CORE_DIR=/path/to/XIFty npm install
+```
+
+To regenerate native prebuilds locally:
+
+```bash
+XIFTY_CORE_DIR=/path/to/XIFty npm run build:prebuilds
 ```
 
 ## Architecture
 
 - native layer: `node-addon-api`
 - core seam: `xifty-ffi`
+- distribution model: bundled `prebuildify` binaries loaded via `node-gyp-build`
 - exchange format: JSON strings returned by the ABI and parsed in JavaScript
 
-## Status
+## Release Model
 
-This repo is intended to become public-facing package infrastructure, but the
-core XIFty engine is still private today. Until the core distribution story is
-finalized, this package builds against a local XIFty checkout rather than a
-published core binary artifact.
+- `CI` validates the package against the public XIFty core repo
+- `publish.yml` builds platform prebuilds and publishes to npm from GitHub
+  Actions
+- npm publishing is intended to use trusted publishing from GitHub Actions
+  rather than long-lived npm tokens
 
+## Maintainer Setup
+
+Before the release workflow can publish automatically:
+
+1. Configure npm trusted publishing for `XIFtySense/XIFtyNode`
+2. Point it at workflow filename `publish.yml`
+3. After trusted publishing works, set package publishing access on npm to
+   `Require two-factor authentication and disallow tokens`
+
+If npm requires the package to exist before trusted publishing can be configured,
+do one initial maintainer publish manually with:
+
+```bash
+npm publish --access public
+```
+
+Then switch subsequent releases to GitHub Actions trusted publishing.

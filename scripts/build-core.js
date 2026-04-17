@@ -1,21 +1,15 @@
 "use strict";
 
 const { spawnSync } = require("node:child_process");
-const path = require("node:path");
+const { cargoArgsForProfile, manifestPath, resolveProfile } = require("./core-config");
 
-const root = path.resolve(__dirname, "..");
-const coreDir = process.env.XIFTY_CORE_DIR
-  ? path.resolve(process.env.XIFTY_CORE_DIR)
-  : path.resolve(root, "..", "XIFty");
-const manifestPath = path.join(coreDir, "Cargo.toml");
+const profile = resolveProfile(process.argv[2]);
+const args = cargoArgsForProfile(profile);
 
-const result = spawnSync(
-  "cargo",
-  ["build", "-p", "xifty-ffi", "--manifest-path", manifestPath],
-  { stdio: "inherit" },
-);
+const result = spawnSync("cargo", args, {
+  stdio: "inherit",
+});
 
 if (result.status !== 0) {
   process.exit(result.status ?? 1);
 }
-

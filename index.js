@@ -1,6 +1,6 @@
 "use strict";
 
-const native = require("./build/Release/xifty_node.node");
+const native = require("node-gyp-build")(__dirname);
 
 const viewByName = {
   full: 0,
@@ -32,4 +32,3 @@ module.exports = {
   probe,
   extract,
 };
-

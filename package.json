@@ -1,16 +1,50 @@
 {
   "name": "@xiftysense/xifty-node",
   "version": "0.1.0",
-  "private": true,
-  "description": "Node binding for XIFty",
+  "description": "Node.js binding for XIFty",
+  "license": "MIT",
   "main": "index.js",
+  "exports": {
+    ".": "./index.js"
+  },
+  "files": [
+    "binding.gyp",
+    "index.js",
+    "prebuilds/**",
+    "scripts/**",
+    "src/**",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/XIFtySense/XIFtyNode.git"
+  },
+  "homepage": "https://github.com/XIFtySense/XIFtyNode#readme",
+  "bugs": {
+    "url": "https://github.com/XIFtySense/XIFtyNode/issues"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-    "install": "node scripts/build-core.js && node-gyp rebuild",
+    "install": "node scripts/install.js",
+    "build": "node scripts/build-addon.js release",
+    "build:debug": "node scripts/build-addon.js debug",
+    "build:prebuilds": "node scripts/prebuild.js",
     "test": "node --test test/*.test.js",
     "example": "node examples/basic_usage.js"
   },
   "dependencies": {
-    "node-addon-api": "^8.5.0"
+    "node-addon-api": "^8.5.0",
+    "node-gyp-build": "^4.8.4"
+  },
+  "devDependencies": {
+    "node-gyp": "^11.5.0",
+    "prebuildify": "^6.0.1"
   }
 }
-
