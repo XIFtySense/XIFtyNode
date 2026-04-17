@@ -91,9 +91,9 @@ function loadNativeBinding(): NativeBinding {
       throw new Error(
         [
           "@xifty/xifty does not ship a native build for this platform.",
-          "Current local publish flow ships macos-arm64 prebuilds.",
-          "linux-x64 remains CI-validated but is not assembled automatically for local publish yet.",
-          "Unsupported platforms include macos-x64, windows, and other Linux architectures.",
+          "Current supported release targets are macos-arm64 and linux-x64.",
+          "AWS Lambda nodejs22.x users should use the linux-x64 package build.",
+          "Unsupported platforms currently include macos-x64, windows, linux-arm64, and other Linux architectures.",
         ].join(" "),
         { cause: error },
       );

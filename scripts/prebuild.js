@@ -7,7 +7,9 @@ const { spawnSync } = require("node:child_process");
 const root = path.resolve(__dirname, "..");
 const prebuildsDir = path.join(root, "prebuilds");
 
-fs.rmSync(prebuildsDir, { recursive: true, force: true });
+if (process.env.XIFTY_PRESERVE_PREBUILDS !== "1") {
+  fs.rmSync(prebuildsDir, { recursive: true, force: true });
+}
 
 const tsc = require.resolve("typescript/bin/tsc");
 let result = spawnSync(process.execPath, [tsc, "-p", "tsconfig.json"], {

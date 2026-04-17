@@ -14,6 +14,9 @@ const coreRef = process.env.XIFTY_CORE_REF || "main";
 const coreCacheDir = process.env.XIFTY_CORE_CACHE_DIR
   ? path.resolve(process.env.XIFTY_CORE_CACHE_DIR)
   : path.join(os.homedir(), ".cache", "xifty-node", "core");
+const explicitCargoTargetDir = process.env.XIFTY_CARGO_TARGET_DIR
+  ? path.resolve(process.env.XIFTY_CARGO_TARGET_DIR)
+  : null;
 const cargoProfile = resolveProfile();
 
 function resolveProfile(value) {
@@ -52,7 +55,8 @@ function includeDir(dir = coreDir()) {
 }
 
 function profileDir(profile = resolveProfile(), dir = coreDir()) {
-  return path.join(dir, "target", profile);
+  const targetRoot = explicitCargoTargetDir || path.join(dir, "target");
+  return path.join(targetRoot, profile);
 }
 
 function staticLibraryPath(profile = resolveProfile(), dir = coreDir()) {
@@ -124,6 +128,7 @@ module.exports = {
   coreDir,
   coreRef,
   coreRepo,
+  explicitCargoTargetDir,
   describeCoreSource,
   ensureCoreCheckout,
   hasCoreCheckout,

@@ -103,4 +103,4 @@ jobs:
           path: ${{ github.workspace }}/XIFtyNode/prebuilds
 
       - name: Show package contents
-        run: npm pack --dry-run
+        run: npm run verify:package

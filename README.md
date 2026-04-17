@@ -140,15 +140,16 @@ Common application fits:
 Current published-package target:
 
 - `macos-arm64`
-
-Release validation also confirms the native build on:
-
 - `linux-x64`
+
+`linux-x64` is the priority Linux target because it covers AWS Lambda
+`nodejs22.x`, most CI runners, and most general Linux servers.
 
 Not supported right now:
 
 - `macos-x64`
 - `windows-*`
+- `linux-arm64`
 - other Linux architectures
 
 If you install the package on an unsupported platform, it fails with a clear
@@ -198,9 +199,15 @@ Useful commands:
 npm run core:prepare
 npm run verify:package
 npm run build:prebuilds
+npm run verify:linux-x64
 npm run publish:local
 ```
 
-The local publish path ships the prebuilds present in `prebuilds/` at publish
-time. Do not assume CI-validated platforms are automatically bundled into a
-local release.
+The local publish path now assembles a release bundle with:
+
+- the host `macos-arm64` prebuild when run on Apple Silicon macOS
+- a Lambda-compatible `linux-x64` prebuild built in an Amazon Linux 2023
+  container
+
+That means manual publish from a supported maintainer Mac produces a package
+that is ready for both local macOS use and AWS Lambda / Linux server use.
