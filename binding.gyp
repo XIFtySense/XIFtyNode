@@ -15,10 +15,26 @@
       ],
       "defines": [ "NAPI_CPP_EXCEPTIONS" ],
       "cflags_cc!": [ "-fno-exceptions" ],
+      "conditions": [
+        [
+          "OS==\"win\"",
+          {
+            "libraries": [
+              "Ws2_32.lib",
+              "Userenv.lib",
+              "Ntdll.lib"
+            ],
+            "msvs_settings": {
+              "VCCLCompilerTool": {
+                "ExceptionHandling": 1
+              }
+            }
+          }
+        ]
+      ],
       "xcode_settings": {
         "GCC_ENABLE_CPP_EXCEPTIONS": "YES"
       }
     }
   ]
 }
-
