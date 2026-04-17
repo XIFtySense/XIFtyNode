@@ -13,12 +13,26 @@ be the canonical npm package for XIFty.
 
 ## Package Model
 
-- published package: ships bundled native prebuilds for supported platforms
+- published package: ships bundled native prebuilds for the supported runtime
+  matrix
 - repo development: can build from source against a sibling `../XIFty` checkout
 - fallback override: set `XIFTY_CORE_DIR` if your core checkout lives elsewhere
 
 The published package no longer expects consumers to have a local XIFty core
 checkout.
+
+## Supported Platforms
+
+The current supported package matrix is intentionally narrow:
+
+- `macos-arm64`
+- `linux-x64`
+
+Out of scope for this package today:
+
+- `macos-x64`
+- `windows-*`
+- other Linux architectures
 
 ## Local Development
 
@@ -52,6 +66,7 @@ XIFTY_CORE_DIR=/path/to/XIFty npm run build:prebuilds
 - `CI` validates the package against the public XIFty core repo
 - `publish.yml` builds platform prebuilds and publishes to npm from GitHub
   Actions
+- release matrix: `macos-arm64`, `linux-x64`
 - preferred auth: npm trusted publishing from GitHub Actions
 - fallback auth: `NPM_TOKEN` GitHub Actions secret backed by a granular
   read/write token with `Bypass two-factor authentication` enabled

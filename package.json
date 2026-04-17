@@ -1,6 +1,6 @@
 {
   "name": "xifty",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Node.js binding for XIFty",
   "license": "MIT",
   "main": "index.js",

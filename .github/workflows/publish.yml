@@ -29,8 +29,6 @@ jobs:
             runs_on: ubuntu-latest
           - name: macos-arm64
             runs_on: macos-14
-          - name: windows-x64
-            runs_on: windows-latest
     defaults:
       run:
         working-directory: ${{ github.workspace }}/XIFtyNode

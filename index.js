@@ -1,6 +1,28 @@
 "use strict";
 
-const native = require("node-gyp-build")(__dirname);
+function loadNativeBinding() {
+  try {
+    return require("node-gyp-build")(__dirname);
+  } catch (error) {
+    if (
+      error &&
+      typeof error.message === "string" &&
+      error.message.includes("No native build was found")
+    ) {
+      throw new Error(
+        [
+          "xifty does not ship a native build for this platform.",
+          "Supported platforms: macos-arm64, linux-x64.",
+          "Unsupported platforms include macos-x64, windows, and other Linux architectures.",
+        ].join(" "),
+        { cause: error },
+      );
+    }
+    throw error;
+  }
+}
+
+const native = loadNativeBinding();
 
 const viewByName = {
   full: 0,
