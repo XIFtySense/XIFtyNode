@@ -41,10 +41,16 @@ list_phase() {
 }
 
 # 1. Triage anything without a phase label.
+# Exclude factory:status:needs-clarification — those issues require author response
+# before intake can assign a type. Running intake again without author input is a
+# silent no-op that wastes a sweep cycle and can produce repeated comments.
+# The curator closes these after 14 days of no response.
 log "phase: intake"
 gh issue list --state open --json number,labels --jq \
   '.[] | select([.labels[].name] | any(startswith("factory:phase:")) | not)
-       | select(([.labels[].name] | any(. == "factory:hold")) | not)
+       | select(([.labels[].name] | any(. == "factory:hold"
+                                      or . == "factory:status:needs-clarification"
+                                      or . == "factory:status:needs-attention")) | not)
        | .number' \
   | while read -r issue; do
       [ -z "$issue" ] && continue
