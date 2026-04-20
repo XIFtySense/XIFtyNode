@@ -119,6 +119,22 @@ import { extract } from "@xifty/xifty";
 const result = extract("image.jpg", { view: "normalized" });
 ```
 
+### ESM
+
+The package ships as CommonJS, but ESM consumers can import it directly via
+Node's CJS-ESM interop (Node 20+). Both default and named imports are
+supported and covered by the test suite and the packed-tarball smoke:
+
+```js
+// default import — exposes the full CJS module.exports object
+import xifty from "@xifty/xifty";
+xifty.extract("image.jpg", { view: "normalized" });
+
+// named imports — same functions, bound by Node's interop
+import { extract, packageVersion } from "@xifty/xifty";
+extract("image.jpg", { view: "normalized" });
+```
+
 ## Why Use It
 
 Use this package when you want:

@@ -102,6 +102,51 @@ for (const fieldName of requiredFields) {
   }
 }
 
+// ESM interop probe against the installed tarball: confirms an ESM consumer
+// in a real npm project can `import` the package via Node's CJS-ESM interop.
+const esmConsumerPath = path.join(tempDir, "esm-consumer.mjs");
+fs.writeFileSync(
+  esmConsumerPath,
+  [
+    'import xifty from "@xifty/xifty";',
+    'import { extract, packageVersion } from "@xifty/xifty";',
+    "if (xifty.packageVersion !== packageVersion) {",
+    '  throw new Error("ESM interop mismatch: default vs named packageVersion");',
+    "}",
+    "const fixturePath = process.argv[2];",
+    'const output = extract(fixturePath, { view: "normalized" });',
+    "if (!output || !output.normalized || !Array.isArray(output.normalized.fields) || output.normalized.fields.length === 0) {",
+    '  throw new Error("ESM extract did not return a populated normalized view");',
+    "}",
+    'process.stdout.write(`ESM-OK ${packageVersion()}\\n`);',
+    "",
+  ].join("\n"),
+);
+
+const esmResult = spawnSync(
+  process.execPath,
+  [esmConsumerPath, fixture],
+  { cwd: tempDir, stdio: "pipe", encoding: "utf8" },
+);
+
+if (esmResult.status !== 0) {
+  process.stderr.write(
+    `packed package ESM smoke failed (exit ${esmResult.status}):\n${esmResult.stderr || esmResult.stdout || ""}`,
+  );
+  process.exit(esmResult.status ?? 1);
+}
+
+const expectedEsmLine = `ESM-OK ${packageJson.version}`;
+if (!esmResult.stdout.includes(expectedEsmLine)) {
+  process.stderr.write(
+    `packed package ESM smoke failed: expected stdout to contain "${expectedEsmLine}", got:\n${esmResult.stdout}`,
+  );
+  process.exit(1);
+}
+
 process.stdout.write(
   `packed package smoke passed for ${path.basename(fixture)} with ${requiredFields.join(", ")}\n`,
+);
+process.stdout.write(
+  `packed package ESM interop smoke passed (${expectedEsmLine})\n`,
 );

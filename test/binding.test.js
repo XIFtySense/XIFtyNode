@@ -98,6 +98,24 @@ test("invalid view throws a targeted error", () => {
   );
 });
 
+test("ESM consumer can import the package via Node's CJS interop", () => {
+  const { spawnSync } = require("node:child_process");
+  const esmFixture = path.resolve(__dirname, "fixtures/esm-consumer.mjs");
+
+  const result = spawnSync(process.execPath, [esmFixture, fixture], {
+    cwd: path.resolve(__dirname, ".."),
+    stdio: "pipe",
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, result.stderr || result.stdout || "");
+  assert.match(result.stdout, /ESM-OK /);
+  assert.ok(
+    result.stdout.includes(`ESM-OK ${packageJson.version}`),
+    `expected ESM-OK ${packageJson.version} in stdout, got: ${result.stdout}`,
+  );
+});
+
 test("consumer installs do not switch to source-build mode from cached core alone", () => {
   const script = `
     const path = require("node:path");

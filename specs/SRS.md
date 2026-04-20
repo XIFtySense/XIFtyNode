@@ -58,6 +58,10 @@ Rules:
   MUST NOT remove or weaken the three base gates.
 - New source files under `src/` MUST ship with tests under `test/`.
   This is enforced as a repo guardrail, not just convention.
+- The `test` gate exercises ESM-interop against the public package name
+  (via Node's CJS-ESM interop and package self-reference); the packed
+  tarball smoke (`npm run verify:tarball`) exercises the same ESM-interop
+  path against the installed tarball in a real consumer dir.
 
 ## 5. Platform Matrix
 
