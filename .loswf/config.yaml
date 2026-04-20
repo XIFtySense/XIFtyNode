@@ -1,0 +1,92 @@
+# loswf2 factory configuration for XIFtyNode.
+# Schema reference: .loswf/config.example.yaml
+
+version: 2
+project: XIFtyNode
+repo: XIFtySense/XIFtyNode
+branch: main
+
+description: >
+  Official Node.js package for XIFty (@xifty/xifty). A typed native bridge
+  (N-API via node-addon-api) into XIFty's metadata engine, exposing raw,
+  interpreted, normalized, and report views for file metadata extraction
+  without shelling out. Factory handles TypeScript surface changes, native
+  binding packaging/prebuild pipelines, and release plumbing.
+
+# Per-role model selection. Defaults inherit the Claude Code session model.
+models:
+  intake: sonnet
+  planner: sonnet
+  plan_reviewer: sonnet
+  builder: sonnet
+  reviewer: sonnet
+  escalation: sonnet
+  harvester: sonnet
+  curator: sonnet
+  architect: sonnet
+  designer: sonnet
+  scout: haiku
+  red_team: sonnet
+  documenter: sonnet
+
+# Validation commands the builder and reviewer MUST run before declaring done.
+# Order matters — fastest first, slowest last (fail fast).
+validate:
+  - name: typecheck
+    run: "tsc -p tsconfig.json --noEmit"
+  - name: test
+    run: "npm test"
+  - name: verify-package
+    run: "npm run verify:package"
+
+# CI check disabled — recent workflow runs are flaky and not a reliable signal.
+ci_check: false
+
+# Repo-specific rules injected into agent contexts.
+guardrails:
+  - "Never push directly to main — all changes go through a branch and PR."
+  - "Never use --no-verify on git commits."
+  - "All new source files must have corresponding tests under test/."
+  - "Do not bump the package version without an explicit release task."
+  - "Native addon builds are opt-in (XIFTY_BUILD_FROM_SOURCE) — do not make source builds the default."
+
+# Language/runtime conventions agents reference when generating code.
+standards:
+  language: TypeScript
+  runtime: Node 20
+  test_runner: "node --test"
+  module_system: CommonJS
+  native_bindings: node-addon-api (N-API) via node-gyp + prebuildify
+  formatting: prettier defaults (no enforced linter)
+
+# Curator scoping — issues matching these are skipped by intake.
+curator:
+  ignore_labels: [question, wontfix, duplicate, dependencies, invalid]
+  ignore_authors: ["dependabot[bot]", "renovate[bot]", "github-actions[bot]"]
+  cadence_hours: 1
+
+# Optional semantic code index (off — no local Qdrant/Ollama detected).
+index:
+  enabled: false
+  top_k: 10
+  paths: [src/, specs/, scripts/]
+  exclude: ["*.test.js", "node_modules/", "dist/", "build/", "prebuilds/"]
+
+# Worktree concurrency cap for sweep parallelism.
+sweep:
+  max_concurrent_builds: 3
+  cycle_interval_minutes: 5
+
+# Grounded external review — optional OpenAI Responses API call.
+grounded_review:
+  enabled: true
+  model: gpt-5
+  timeout_seconds: 120
+  marker_prefix: "loswf:grounded"
+  budget:
+    feature: 2
+    task: 1
+    bug: 1
+    chore: 0
+    refactor: 1
+    docs: 0
