@@ -16,7 +16,17 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: test (${{ matrix.name }})
+    runs-on: ${{ matrix.runs_on }}
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: linux-x64
+            runs_on: ubuntu-24.04
+          - name: macos-arm64
+            runs_on: macos-14
     defaults:
       run:
         working-directory: ${{ github.workspace }}/XIFtyNode
