@@ -32,7 +32,18 @@ Out of scope (see VISION non-goals):
 
 ## 3. Specs Index
 
-Individual specs will be filed under `specs/` as they are scoped out.
+Scoped capability specs live alongside this document:
+
+- [`prebuild-matrix.md`](./prebuild-matrix.md) — native-addon prebuild
+  pipeline, platform matrix, and install-time binding resolution
+  (VISION principles 2 & 3; SRS sections 2 and 5).
+- [`release-pipeline.md`](./release-pipeline.md) — version/tag/publish
+  plumbing, prebuild-artifact parity, and release guardrails
+  (VISION principle 7; SRS section 6).
+- [`typescript-surface.md`](./typescript-surface.md) — the public
+  JavaScript/TypeScript API contract, module shape, and typecheck
+  gate (VISION principle 1; SRS section 2).
+
 The current roadmap order is tracked in the `factory:roadmap` issue on
 GitHub. Drafts under `specs/drafts/` are curator proposals awaiting
 triage.
