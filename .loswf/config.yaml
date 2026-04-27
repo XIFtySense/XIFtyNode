@@ -78,8 +78,12 @@ sweep:
   cycle_interval_minutes: 5
 
 # Grounded external review — optional OpenAI Responses API call.
+# DISABLED: .loswf/tools/grounded_review.py is not installed. Agents referencing
+# this tool produce (eval):7 errors and apply factory:status:needs-attention as a
+# side-effect. Re-enable only after the tool file is present at that path and
+# OPENAI_API_KEY is set in the environment. See XIFtySense/XIFtyNode#8 for history.
 grounded_review:
-  enabled: true
+  enabled: false
   model: gpt-5
   timeout_seconds: 120
   marker_prefix: "loswf:grounded"
