@@ -1,244 +1,103 @@
 # XIFty for Node.js
 
-`@xifty/xifty` is the official Node.js package for XIFty.
-
-It gives Node applications a typed, native bridge into XIFty’s metadata engine
-so you can inspect files and extract metadata without shelling out to external
-tools.
-
-## Install
+Read metadata from images, video, and audio — locally, without shelling
+out, with stable normalized fields you can ship to product code.
 
 ```bash
 npm install @xifty/xifty
 ```
 
-## What It Does
-
-XIFty is built around four views of metadata:
-
-- `raw`: direct extracted metadata values
-- `interpreted`: decoded values with namespace meaning
-- `normalized`: stable cross-format fields for application use
-- `report`: issues and conflicts surfaced honestly
-
-This package exposes the same model directly in Node.
-
-## Quick Example
-
 ```js
 const xifty = require("@xifty/xifty");
-
 const result = xifty.extract("photo.jpg", { view: "normalized" });
 
-console.log(result.input.detected_format);
-console.log(result.normalized.fields);
-```
-
-Typical normalized use:
-
-```js
 const fields = Object.fromEntries(
-  result.normalized.fields.map((field) => [field.field, field.value.value]),
+  result.normalized.fields.map((f) => [f.field, f.value.value]),
 );
 
-console.log(fields["device.make"]);
-console.log(fields["device.model"]);
-console.log(fields["captured_at"]);
+fields["device.make"];      // "Apple"
+fields["device.model"];     // "iPhone 15 Pro"
+fields["captured_at"];      // "2026-04-21T14:33:08-04:00"
+fields["location"];         // { latitude: 40.7922, longitude: -73.9584 }
 ```
 
-## API
+## What you get
 
-### `xifty.version(): string`
+XIFty extracts metadata from a wide range of media containers and
+surfaces it in four views — `raw`, `interpreted`, `normalized`, and
+`report` — so you can use clean stable fields in product code without
+losing access to the underlying values when provenance matters.
 
-Returns the XIFty core version reported by the native library.
+### Formats supported today
 
-### `xifty.packageVersion(): string`
+| Container | Decoders |
+|---|---|
+| **JPEG / TIFF / DNG** | EXIF · XMP · ICC · IPTC |
+| **PNG / WebP** | EXIF · XMP · ICC · IPTC |
+| **HEIF / HEIC** | EXIF · XMP · ICC · IPTC · item-based dimensions |
+| **MP4 / MOV** | QuickTime · iTunes · ICC · XMP · Apple/Sony vendor metadata · **DJI drone telemetry** |
+| **M4A / M4B / M4P** | iTunes `ilst` (title, artist, album, year, genre, track number, cover art …) |
+| **FLAC** | Native stream info · Vorbis comments · embedded picture |
+| **OGG (Vorbis / Opus)** | Page parsing · ident headers · Vorbis comments |
+| **AIFF / AIFC** | Stream info from `COMM` chunk |
 
-Returns the npm package version.
+### Normalized fields
 
-### `xifty.probe(path: string): XiftyEnvelope`
+The `normalized` view gives you cross-format stable keys so you don't
+have to know whether a given file was JPEG-EXIF or DJI-`udta` or
+Vorbis-comment:
 
-Detects the input format and returns a lightweight envelope describing the file.
+- `device.make`, `device.model`, `device.serial_number`
+- `captured_at`, `created_at`, `modified_at`
+- `location` (latitude, longitude, altitude)
+- `dimensions.width`, `dimensions.height`, `orientation`
+- `exposure.iso`, `exposure.aperture`, `exposure.shutter_speed`, `exposure.focal_length_mm`
+- `lens.make`, `lens.model`
+- `duration`, `video.framerate`, `video.bitrate`, `codec.video`, `codec.audio`
+- `audio.channels`, `audio.sample_rate`, `audio.bit_depth`
+- `drone.flight.{pitch,yaw,roll}_deg`, `drone.gimbal.{pitch,yaw,roll}_deg`, `drone.speed.{x,y,z}_mps`
+- `author`, `copyright`, `headline`, `description`, `keywords`
+- `color.space`, `color.profile.name`, `color.profile.class`
 
-Example:
+When fields disagree across sources (e.g. EXIF vs. XMP), the `report`
+view tells you the conflict explicitly rather than silently picking
+one.
+
+## Try it
 
 ```js
-const probe = xifty.probe("image.jpg");
-console.log(probe.input);
+const { extract, probe } = require("@xifty/xifty");
+
+// Lightweight format detection — no full extraction
+probe("clip.mp4").input.detected_format;   // "mp4"
+
+// Drone telemetry from a DJI MP4 — same API, same shape
+const dji = extract("DJI_0003.MP4", { view: "normalized" });
+const fields = Object.fromEntries(
+  dji.normalized.fields.map((f) => [f.field, f.value.value])
+);
+fields["drone.gimbal.pitch_deg"];   // -31.2
+fields["drone.flight.yaw_deg"];     // 175.5
+fields["device.serial_number"];     // "53HQN4T0M5B7JW"
 ```
 
-### `xifty.extract(path: string, options?): XiftyEnvelope`
+## Common use cases
 
-Extracts metadata for the input file.
+- Photo / video library ingestion (EXIF, XMP, GPS, capture time)
+- Drone footage indexing (DJI flight + gimbal telemetry, GPS, model)
+- AWS Lambda media-pipeline upload handlers
+- Media-asset deduplication and search
+- Audio library tagging (Vorbis comments across FLAC, OGG, Opus)
+- Compliance audits (provenance via `raw` + `report` views)
 
-Supported `view` values:
+## More documentation
 
-- `"full"`
-- `"raw"`
-- `"interpreted"`
-- `"normalized"`
-- `"report"`
+- **[API reference](./docs/api.md)** — every method, every option, every output field
+- **[AWS Lambda](./docs/aws-lambda.md)** — runtime targets, SAM example, layer assembly
+- **[Supported platforms](./docs/platforms.md)** — what ships, what doesn't, why
+- **[Local development](./docs/development.md)** — building from source, running tests
+- **[Releasing](./RELEASING.md)** — maintainer guide for cutting a new version
 
-Example:
+## License
 
-```js
-const normalized = xifty.extract("image.jpg", { view: "normalized" });
-const report = xifty.extract("image.jpg", { view: "report" });
-```
-
-Numeric view selection is also supported for low-level consumers, but named
-views are the intended public API.
-
-## Output Shape
-
-Every call returns a JSON-like envelope with the same top-level structure:
-
-```js
-{
-  schema_version,
-  input,
-  raw,
-  interpreted,
-  normalized,
-  report
-}
-```
-
-That shape is intentionally close to the core CLI and C ABI so behavior stays
-predictable across the XIFty ecosystem.
-
-## TypeScript
-
-The public wrapper is written in TypeScript and ships declaration files.
-
-Example:
-
-```ts
-import { extract } from "@xifty/xifty";
-
-const result = extract("image.jpg", { view: "normalized" });
-```
-
-## Why Use It
-
-Use this package when you want:
-
-- a native Node interface instead of shelling out to CLI tools
-- stable normalized fields for app logic
-- access to raw and interpreted metadata when provenance matters
-- explicit issue/conflict reporting instead of silent lossy parsing
-
-Common application fits:
-
-- photo-library ingestion
-- media indexing pipelines
-- upload-time metadata extraction
-- back-office asset processing
-
-## AWS Lambda
-
-`@xifty/xifty` is the recommended XIFty runtime for AWS Lambda today.
-
-The published package currently targets:
-
-- `linux-x64`
-- `macos-arm64`
-
-That means the package is ready for `nodejs22.x` Lambda on `x86_64`, local
-Apple Silicon development, and common Linux server/CI environments.
-
-For the first-party Lambda adoption path, start from:
-
-- the core repo Lambda guide:
-  [docs/adoption/AWS_LAMBDA_NODE.md](https://github.com/XIFtySense/XIFty/blob/main/docs/adoption/AWS_LAMBDA_NODE.md)
-- the checked-in SAM example:
-  [examples/aws-sam-node](https://github.com/XIFtySense/XIFty/tree/main/examples/aws-sam-node)
-
-## Supported Platforms
-
-Current published-package target:
-
-- `macos-arm64`
-- `linux-x64`
-
-`linux-x64` is the priority Linux target because it covers AWS Lambda
-`nodejs22.x`, most CI runners, and most general Linux servers.
-
-Not supported right now:
-
-- `macos-x64`
-- `windows-*`
-- `linux-arm64`
-- other Linux architectures
-
-If you install the package on an unsupported platform, it fails with a clear
-native-build error instead of silently pretending support.
-
-## Design Notes
-
-- native seam: `xifty-ffi`
-- Node bridge: `node-addon-api`
-- package loader: `node-gyp-build`
-- public surface: TypeScript + generated `.d.ts`
-
-Those are implementation details, but they matter for reliability: this package
-is a thin wrapper over the same XIFty core used elsewhere, not a separate
-reimplementation.
-
-## Local Development
-
-```bash
-npm install
-npm test
-npm run coverage
-node examples/basic_usage.js
-node examples/gallery_ingest.js
-```
-
-## Maintainer Notes
-
-GitHub Actions no longer publish this package. The current release path is
-local maintainer publish from an authenticated npm CLI session.
-
-Maintainer builds no longer assume a sibling `../XIFty` checkout. The build
-scripts resolve XIFty core in this order:
-
-1. `XIFTY_CORE_DIR` if you explicitly point at a local checkout
-2. a cached checkout of `https://github.com/XIFtySense/XIFty.git` at `main`
-
-You can override the cached source with:
-
-- `XIFTY_CORE_REPO`
-- `XIFTY_CORE_REF`
-- `XIFTY_CORE_CACHE_DIR`
-
-Useful commands:
-
-```bash
-npm run core:prepare
-npm run verify:package
-npm run verify:tarball
-npm run build:prebuilds
-npm run verify:linux-x64
-npm run publish:local
-```
-
-The local publish path now assembles a release bundle with:
-
-- the host `macos-arm64` prebuild when run on Apple Silicon macOS
-- a Lambda-compatible `linux-x64` prebuild built in an Amazon Linux 2023
-  container
-
-That means manual publish from a supported maintainer Mac produces a package
-that is ready for both local macOS use and AWS Lambda / Linux server use.
-
-For release-sensitive local verification against a real fixture, point the
-packed-tarball smoke test at the file and require the fields you care about.
-Example:
-
-```bash
-XIFTY_SMOKE_FIXTURE=/Users/k/Projects/XIFty/fixtures/local/C0242.MP4 \
-XIFTY_SMOKE_FIELDS=video.bitrate,audio.sample_rate \
-XIFTY_SMOKE_NONZERO_FIELDS=video.bitrate,audio.sample_rate \
-npm run verify:tarball
-```
+MIT. Built on the open-source [XIFty core](https://github.com/XIFtySense/XIFty).

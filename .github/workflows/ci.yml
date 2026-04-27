@@ -59,6 +59,18 @@ jobs:
       - name: Run tests
         run: npm test
 
+      # The smoke step packs the package and installs it into a temp dir.
+      # That temp install runs the package's install hook which deliberately
+      # skips a source build, so it can only succeed if prebuilds/ is populated.
+      # We populate the local platform's prebuild here (no Docker, no cross-
+      # compile) so the smoke loads cleanly on whatever Node version the CI
+      # runner uses. The release-cut maintainer flow (publish:local) handles
+      # the Linux-x64 prebuild via Docker separately.
+      - name: Build local-platform prebuild for smoke
+        env:
+          XIFTY_CORE_DIR: ${{ github.workspace }}/XIFty
+        run: npm run build:prebuilds:local
+
       - name: Smoke packed tarball
         run: npm run verify:tarball
 
