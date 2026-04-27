@@ -61,7 +61,7 @@ standards:
 
 # Curator scoping — issues matching these are skipped by intake.
 curator:
-  ignore_labels: [question, wontfix, duplicate, dependencies, invalid]
+  ignore_labels: [question, wontfix, duplicate, dependencies, invalid, factory:roadmap, factory:curator-proposals]
   ignore_authors: ["dependabot[bot]", "renovate[bot]", "github-actions[bot]"]
   cadence_hours: 1
 
