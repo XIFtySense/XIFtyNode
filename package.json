@@ -1,6 +1,6 @@
 {
   "name": "@xifty/xifty",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Official Node package for XIFty",
   "license": "MIT",
   "main": "dist/index.js",
