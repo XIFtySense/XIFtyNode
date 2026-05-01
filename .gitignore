@@ -1,3 +1,4 @@
+.DS_Store
 node_modules/
 build/
 dist/
@@ -6,3 +7,4 @@ prebuilds/
 *.tgz
 .loswf/state/
 *.bak.*
+.claude/worktrees/
