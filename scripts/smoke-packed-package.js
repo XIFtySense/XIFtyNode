@@ -72,6 +72,12 @@ const nonZeroFields = new Set(
     .map((field) => field.trim())
     .filter(Boolean),
 );
+const sidecarFields = (process.env.XIFTY_SMOKE_SIDECAR_FIELDS || "")
+  .split(",")
+  .map((field) => field.trim())
+  .filter(Boolean);
+const expectedSidecarNamespace =
+  process.env.XIFTY_SMOKE_SIDECAR_NAMESPACE || "sony_nrt";
 
 const requireFromTemp = createRequire(path.join(tempDir, "package.json"));
 const xifty = requireFromTemp("@xifty/xifty");
@@ -105,3 +111,37 @@ for (const fieldName of requiredFields) {
 process.stdout.write(
   `packed package smoke passed for ${path.basename(fixture)} with ${requiredFields.join(", ")}\n`,
 );
+
+// Optional sidecar-aware verification path. Set XIFTY_SMOKE_SIDECAR_FIELDS to a
+// comma list of normalized fields that must surface from a sidecar (e.g.
+// `umid,recording.mode,timecode.ltc.start`). Each field's `sources[]` is
+// asserted to contain at least one entry whose `namespace` equals
+// XIFTY_SMOKE_SIDECAR_NAMESPACE (default `sony_nrt`).
+if (sidecarFields.length > 0) {
+  const sidecarOutput = xifty.extract(fixture, {
+    view: "normalized",
+    sidecars: { discoverFrom: fixture },
+  });
+  const sidecarFieldsByName = fieldsByName(sidecarOutput);
+
+  for (const fieldName of sidecarFields) {
+    const field = sidecarFieldsByName[fieldName];
+    if (!field) {
+      process.stderr.write(
+        `packed package sidecar smoke failed: missing field ${fieldName} for fixture ${fixture} (sidecar discovery enabled)\n`,
+      );
+      process.exit(1);
+    }
+    const namespaces = (field.sources ?? []).map((source) => source.namespace);
+    if (!namespaces.includes(expectedSidecarNamespace)) {
+      process.stderr.write(
+        `packed package sidecar smoke failed: ${fieldName} has no source with namespace='${expectedSidecarNamespace}'; got namespaces=${JSON.stringify(namespaces)}\n`,
+      );
+      process.exit(1);
+    }
+  }
+
+  process.stdout.write(
+    `packed package sidecar smoke passed for ${path.basename(fixture)} with ${sidecarFields.join(", ")} (namespace=${expectedSidecarNamespace})\n`,
+  );
+}

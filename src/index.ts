@@ -5,8 +5,26 @@ import nodeGypBuild from "node-gyp-build";
 
 export type ViewName = "full" | "raw" | "interpreted" | "normalized" | "report";
 
+/**
+ * Sidecar discovery options.
+ *
+ * When `discoverFrom` is set, XIFty looks for co-located metadata sidecars
+ * (e.g. Sony NRT XML siblings of XAVC `.MP4` clips) and merges fields under
+ * `sources[].namespace = "<adapter_name>"` provenance. The path is the absolute
+ * on-disk path to the primary file — XIFty walks its siblings (and bounded
+ * parent directories where adapters require) to locate sidecars.
+ *
+ * Without `discoverFrom` the option is a no-op (matches behavior of the
+ * legacy `extract` API). Buffer-only callers always see no behavior change.
+ */
+export interface SidecarOptions {
+  discoverFrom?: string;
+  accept?: string[];
+}
+
 export interface ExtractOptions {
   view?: ViewName | number;
+  sidecars?: SidecarOptions;
 }
 
 export interface InputSummary {
@@ -73,6 +91,11 @@ interface NativeBinding {
   version(): string;
   probeJson(filePath: string): string;
   extractJson(filePath: string, viewMode: number): string;
+  extractJsonWithOptions(
+    filePath: string,
+    viewMode: number,
+    enableSidecars: boolean,
+  ): string;
 }
 
 const packageRoot = path.resolve(__dirname, "..");
@@ -130,6 +153,19 @@ export function extract(filePath: string, options: ExtractOptions = {}): XiftyEn
   const viewMode = typeof view === "number" ? view : viewByName[String(view) as ViewName];
   if (viewMode === undefined) {
     throw new TypeError(`unsupported view: ${view}`);
+  }
+  // Sidecar discovery requires an on-disk path. When `discoverFrom` is set we
+  // route through extractJsonWithOptions; otherwise we keep the legacy path so
+  // existing consumers see zero behavior change. The native side runs sidecar
+  // adapters relative to `filePath`, so callers should pass the same absolute
+  // path they want sidecars discovered from. The optional `discoverFrom` exists
+  // for forward compatibility (e.g. piped buffers backed by a real on-disk
+  // location) but today XIFty's discovery always uses the primary `filePath`.
+  const enableSidecars = options.sidecars?.discoverFrom != null;
+  if (enableSidecars) {
+    return JSON.parse(
+      native.extractJsonWithOptions(filePath, viewMode, true),
+    ) as XiftyEnvelope;
   }
   return JSON.parse(native.extractJson(filePath, viewMode)) as XiftyEnvelope;
 }

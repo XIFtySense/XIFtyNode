@@ -101,10 +101,42 @@ Napi::Value ExtractJson(const Napi::CallbackInfo& info) {
   return Napi::String::New(env, json);
 }
 
+Napi::Value ExtractJsonWithOptions(const Napi::CallbackInfo& info) {
+  const Napi::Env env = info.Env();
+  if (info.Length() != 3 || !info[0].IsString() || !info[1].IsNumber() ||
+      !info[2].IsBoolean()) {
+    Napi::TypeError::New(
+        env,
+        "extractJsonWithOptions expects (filePath: string, viewMode: number, enableSidecars: boolean)")
+        .ThrowAsJavaScriptException();
+    return env.Null();
+  }
+
+  const std::string path = info[0].As<Napi::String>().Utf8Value();
+  const int32_t viewMode = info[1].As<Napi::Number>().Int32Value();
+  XiftyExtractOptions options{};
+  options.enable_sidecars = info[2].As<Napi::Boolean>().Value();
+
+  const XiftyResult result = xifty_extract_json_with_options(
+      path.c_str(), static_cast<XiftyViewMode>(viewMode), options);
+
+  if (result.status != XIFTY_STATUS_CODE_SUCCESS) {
+    ThrowFromResult(env, result);
+    FreeResult(result);
+    return env.Null();
+  }
+
+  const std::string json = BufferToString(result.output);
+  FreeResult(result);
+  return Napi::String::New(env, json);
+}
+
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
   exports.Set("version", Napi::Function::New(env, Version));
   exports.Set("probeJson", Napi::Function::New(env, ProbeJson));
   exports.Set("extractJson", Napi::Function::New(env, ExtractJson));
+  exports.Set("extractJsonWithOptions",
+              Napi::Function::New(env, ExtractJsonWithOptions));
   return exports;
 }
 
